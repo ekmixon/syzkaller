@@ -37,15 +37,8 @@ def main():
 
     args = parser.parse_args()
 
-    loglvl = logging.INFO
-
-    if args.debug:
-        loglvl = logging.DEBUG
-
-    include_lines = ''
-    if args.include:
-        include_lines = open(args.include, 'r').read()
-
+    loglvl = logging.DEBUG if args.debug else logging.INFO
+    include_lines = open(args.include, 'r').read() if args.include else ''
     try:
         gh = GlobalHierarchy(filenames=args.filenames.split(','),
                          loglvl=loglvl, include_lines=include_lines)

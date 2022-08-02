@@ -74,13 +74,8 @@ class StructRepr(object):
             if '[' in native_type and ']' in native_type:
                 return 'array'
 
-            # If we have a pointer to a struct object
             elif 'struct ' in native_type:
-                if '*' in native_type:
-                    return 'ptr|buffer|array'
-                else:
-                    return native_type.split(' ')[-1]
-
+                return 'ptr|buffer|array' if '*' in native_type else native_type.split(' ')[-1]
             elif 'enum ' in native_type:
                 return native_type.split(' ')[-1]
 
@@ -92,7 +87,7 @@ class StructRepr(object):
         for field in self.fr_list:
             rows.append((field.field_identifier, _get_syzkaller_type(field.field_type), field.field_type))
 
-        maxcolwidth = lambda rows, x: max([len(row[x])+5 for row in rows])
+        maxcolwidth = lambda rows, x: max(len(row[x])+5 for row in rows)
         col1_width = maxcolwidth(rows, 0)
         col2_width = maxcolwidth(rows, 1)
         for row in rows:
@@ -208,7 +203,7 @@ class GlobalHierarchy(dict):
             fr_list = [FieldRepr(i[0], i[1]) for i in local_hierarchy[struct_name]]
             sr = StructRepr(struct_name, fr_list, loglvl=self.loglvl)
             sr.set_global_hierarchy(self)
-            self["struct %s" % (struct_name)] = sr
+            self[f"struct {struct_name}"] = sr
 
         for struct_name in list(self.keys()):
             sr = self[struct_name]

@@ -57,33 +57,26 @@ def read_pdf_page(pnum, store = False):
 		"-table",
 		isa_pdf, "-"])
 	tmp = tmp.decode("Latin1").split("\n")
-	ret = []
-
-	for t in range(len(tmp)):
-		if tmp[t] == "":
-			continue
-		ret += [tmp[t]]
+	ret = [tmp[t] for t in range(len(tmp)) if tmp[t] != ""]
 
 	if store:
 		off = 0
 		for t in range(len(tmp)):
-			t2 = re.match(r"\b0\b\s+[\d\s]+?\b31\b", tmp[t])
-			if t2:
+			if t2 := re.match(r"\b0\b\s+[\d\s]+?\b31\b", tmp[t]):
 				if t2.start() == 0:
 					off = t2.end() + 2
 					break
 				off = t2.start()
 				break
 		for t in range(len(tmp)):
-			t2 = re.search(r"\b0\b\s+[\d\s]+?\b31\b", tmp[t][30:])
-			if t2:
+			if t2 := re.search(r"\b0\b\s+[\d\s]+?\b31\b", tmp[t][30:]):
 				off = max(off, t2.span()[0] + 30)
 				break
 		if not off:
-			print("!!! No idea how to split {}".format(pagenum))
+			print(f"!!! No idea how to split {pagenum}")
 			sys.exit(-1)
 
-		f.write("===== page {}\n".format(pagenum))
+		f.write(f"===== page {pagenum}\n")
 		ret2 = []
 		for c in ret[1:-1]:
 			t = c[:off].strip()
@@ -112,24 +105,21 @@ def find_pdf_pagenumber_offset():
 		if not tmp:
 			continue
 
-		print("Reading page {}: '{}'".format(i, tmp[-1]), file = sys.stderr)
+		print(f"Reading page {i}: '{tmp[-1]}'", file = sys.stderr)
 		if not opcodes_first_page:
 			for t in tmp:
-				t2 = re.match(r'.*Set Sorted by Opcode[\s\.]+(\d+)', t)
-				if t2:
-					print("Found: {}".format(t2.groups()), file = sys.stderr)
-					opcodes_first_page = int(t2.group(1))
+				if t2 := re.match(r'.*Set Sorted by Opcode[\s\.]+(\d+)', t):
+					print(f"Found: {t2.groups()}", file = sys.stderr)
+					opcodes_first_page = int(t2[1])
 					continue
-				t2 = re.match(r'.*Set Sorted by Version[\s\.]+(\d+)', t)
-				if t2:
-					print("Found: {}".format(t2.groups()), file = sys.stderr)
-					opcodes_last_page = int(t2.group(1)) - 1
+				if t2 := re.match(r'.*Set Sorted by Version[\s\.]+(\d+)', t):
+					print(f"Found: {t2.groups()}", file = sys.stderr)
+					opcodes_last_page = int(t2[1]) - 1
 					break
 
-		t2  = re.match(r'^(\d+)\s+.*$', tmp[-1])
-		if not t2:
-			t2  = re.match(r'.*\s+(\d+)$', tmp[-1])
-		if t2:
+		if t2 := re.match(r'^(\d+)\s+.*$', tmp[-1]) or re.match(
+			r'.*\s+(\d+)$', tmp[-1]
+		):
 			first_page = int(t2.group(1))
 			if first_page < 100:
 				first_page = i - 1
@@ -137,7 +127,10 @@ def find_pdf_pagenumber_offset():
 	return first_page, opcodes_first_page, opcodes_last_page
 
 pageoffset, opcodes_first_page, opcodes_last_page = find_pdf_pagenumber_offset()
-print("Offset = {}, opcodes on pages {}..{} (phys pages {}..{})".format(pageoffset, opcodes_first_page, opcodes_last_page, opcodes_first_page + pageoffset, opcodes_last_page + pageoffset), file = sys.stderr)
+print(
+	f"Offset = {pageoffset}, opcodes on pages {opcodes_first_page}..{opcodes_last_page} (phys pages {opcodes_first_page + pageoffset}..{opcodes_last_page + pageoffset})",
+	file=sys.stderr,
+)
 
 def add_mode_priv(mode, priv):
 	ret = ""

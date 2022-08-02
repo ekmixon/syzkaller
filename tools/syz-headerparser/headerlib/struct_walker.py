@@ -145,11 +145,11 @@ class StructWalker(c_ast.NodeVisitor):
         self.logger.debug('_format_item : %s', processed_item)
 
         if 'is_ptr' in processed_item and 'is_fnptr' not in processed_item:
-            fmt_type = '%s%s' % (fmt_type, '*' * processed_item['is_ptr'])
+            fmt_type = f"{fmt_type}{'*' * processed_item['is_ptr']}"
 
         if 'is_array' in processed_item and 'array_size' in processed_item:
             size_str = str(processed_item['array_size']).replace(', ', '][')
-            fmt_type = '%s%s' % (fmt_type, size_str)
+            fmt_type = f'{fmt_type}{size_str}'
 
         fmt_identifier = processed_item['identifier']
 
@@ -169,19 +169,18 @@ class StructWalker(c_ast.NodeVisitor):
                 processed_item['type'] = item_ast.names
                 return self._format_item(processed_item)
 
-        elif (isinstance(item_ast, c_ast.Struct) or
-              isinstance(item_ast, c_ast.Union)):
+        elif isinstance(item_ast, (c_ast.Struct, c_ast.Union)):
             if not item_ast.name:
                 nodename, _items_list = self._traverse_ast(item_ast, toplevel=False)
                 try:
-                    items_list = [(i[0], '%s.%s' % (parent.declname, i[1])) for i in _items_list]
+                    items_list = [(i[0], f'{parent.declname}.{i[1]}') for i in _items_list]
                 except AttributeError as e:
                     self.logger.info('-- Encountered anonymous_struct/anonymous_union with no name')
                     raise StructWalkerException('Encountered anonymous_struct/anonymous_union with no name')
 
                 return items_list
             else:
-                processed_item['type'] = ['struct %s' % (item_ast.name)]
+                processed_item['type'] = [f'struct {item_ast.name}']
                 return self._format_item(processed_item)
 
         elif isinstance(item_ast, c_ast.PtrDecl):
@@ -198,7 +197,7 @@ class StructWalker(c_ast.NodeVisitor):
             return self._recursive_process_item(item_ast.type, processed_item, item_ast)
 
         elif isinstance(item_ast, c_ast.Enum):
-            processed_item['type'] = ['enum %s' % (item_ast.name)]
+            processed_item['type'] = [f'enum {item_ast.name}']
             return self._format_item(processed_item)
 
         elif isinstance(item_ast, c_ast.FuncDecl):

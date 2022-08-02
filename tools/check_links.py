@@ -36,11 +36,7 @@ def filter_link(args):
 	(doc, link, line, col) = args
 	if link.startswith('http'):
 		return False
-	if link.startswith('#'):
-		return False
-	if link.startswith('mailto'):
-		return False
-	return True
+	return False if link.startswith('#') else not link.startswith('mailto')
 
 links = list(filter(filter_link, links))
 
@@ -61,9 +57,7 @@ def check_link(args):
 		full_link = os.path.join(root, link)
 	else:
 		full_link = os.path.join(root, path, link)
-	if not os.path.exists(full_link):
-		return False
-	return True
+	return bool(os.path.exists(full_link))
 
 for link in links:
 	if not check_link(link):

@@ -111,7 +111,7 @@ class HeaderFilePreprocessor(object):
         self.logger.setLevel(loglvl)
 
     def _copyfiles(self):
-        self.execute('cp %s %s' % (' '.join(self.filenames), self.tempdir))
+        self.execute(f"cp {' '.join(self.filenames)} {self.tempdir}")
 
     def _mktempfiles(self):
         self.tempdir = tempfile.mkdtemp()
@@ -129,8 +129,9 @@ class HeaderFilePreprocessor(object):
         open(self.temp_sourcefile, 'w').write(template % (locals()))
 
     def _gcc_preprocess(self):
-        self.execute('gcc -I. -E -P -c %s > %s'
-                                        % (self.temp_sourcefile, self.temp_objectfile))
+        self.execute(
+            f'gcc -I. -E -P -c {self.temp_sourcefile} > {self.temp_objectfile}'
+        )
 
     def _get_ast(self):
         return pycparser.parse_file(self.temp_objectfile)
